@@ -28,7 +28,18 @@ router.post('/', async (req, res) => {
 // list tweets
 
 router.get('/', async (req, res) => {
-	const allTweets = await prisma.tweet.findMany();
+	const allTweets = await prisma.tweet.findMany({
+		include: {
+			user: {
+				select: {
+					id: true,
+					name: true,
+					username: true,
+					image: true,
+				},
+			},
+		},
+	});
 	res.json(allTweets);
 });
 
@@ -54,7 +65,7 @@ router.put('/:id', (req, res) => {
 router.delete('/:id', async (req, res) => {
 	const { id } = req.params;
 	await prisma.tweet.delete({ where: { id: Number(id) } });
-	res.sendStatus(200)
+	res.sendStatus(200);
 });
 
 export default router;
