@@ -1,14 +1,14 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import { sendEmailToken } from '../services/emailService';
 
 const EMAIL_TOKEN_EXPIRATION_MINUTES = 10;
 const AUTHENTICATION_EXPIRATION_HOURS = 12;
 
 const router = Router();
 const prisma = new PrismaClient();
-const JWT_SECRET = 'XXXXXX';
-
+const JWT_SECRET = process.env.JWT_SECRET || 'super secret';
 
 // generate a random 8 digit number as the email token
 function generateEmailToken(): string {
@@ -51,7 +51,7 @@ router.post('/login', async (req, res) => {
 		});
 
 		console.log(createdToken);
-
+		await sendEmailToken(email, emailToken);
 		res.sendStatus(200);
 	} catch (e) {
 		console.log(e);
@@ -70,7 +70,7 @@ router.post('/authenticate', async (req, res) => {
 		},
 		include: {
 			user: true,
-		}
+		},
 	});
 
 	console.log(dbEmailToken);
@@ -114,7 +114,6 @@ router.post('/authenticate', async (req, res) => {
 	// generate the JWT token
 	const authToken = generateAuthToken(apiToken.id);
 	res.json({ authToken });
-	
 });
 
 export default router;
